@@ -3,7 +3,7 @@ const express       = require('express'),
       morgan        = require('morgan'),
       mongoose      = require('mongoose');
 
-mongoose.Promise = global.Promise;
+// mongoose.Promise = global.Promise;
 
 const Product = require('./models/product');
 
@@ -16,27 +16,55 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.get('/api/product', (req, res) => {
-  res.status(200).send({products: []} );
+  Product.find({}, (err, products) => {
+    if(err) return res.status(500).send({message: `Error ${err}`});
+    if(!products) return res.status(404).send({message: 'No products found!'});
+
+    res.status(200).send({products} );
+  });
 });
 
 app.post('/api/product', (req, res) => {
   let product = new Product();
+
   product.name = req.body.name;
   product.image = req.body.image;
   product.price = req.body.price;
+  product.category = req.body.category;
+  product.description = req.body.description;
 
-  console.log(req.product);
+  product.save( (err, productStored) => {
+    if(err) res.status(500).send({message: `Error: ${err}`});
+    res.status(201).send({product: productStored});
+  });
 
-  res.status(201).send({message: 'Product created!'} );
+});
+
+app.get('/api/product/:productId', (req, res) => {
+  Product.findById(req.params.productId, (err, product) => {
+    if(err) return res.status(500).send({message: `Error: ${err}`});
+    if(!product) return res.status(404).send(`No product found with speficied ID: ${req.params.productId}`);
+
+    res.status(200).send({product});
+  });
 });
 
 app.put('/api/product/:productId', (req, res) => {
-  res.send('UPDATE Product Endpoint');
+  Product.findByIdAndUpdate(req.params.productId, req.body, {new: true}, (err, productUpdated) => {
+    if(err) return res.status(500).send({message: `Errror ${err} `});
+    if(!productUpdated) return res.status(404).send({message: `Error: Product ID: ${req.params.productId} not found!`});
+
+    res.status(200).send({product: productUpdated});
+  })
 });
 
 app.delete('/api/product/:productId', (req, res) => {
-  res.send('DELETE Product Endpoint');
-})
+  Product.findByIdAndRemove(req.params.productId, (err, product) => {
+    if(err) return res.status(500).send({message: `Error: ${err}`});
+
+    res.status(400).send({product});
+  });
+});
 
 mongoose.connect('mongodb://dmercado:bb5702904bb@ds141534.mlab.com:41534/shop-api', { useMongoClient: true }, (err) => {
   if(err) throw new Error();

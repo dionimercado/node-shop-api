@@ -10,4 +10,4 @@ const productSchema = ({
   created_at: { type: Date, default: Date.now }
 });
 
-mongoose.model('Product', productSchema);
+module.exports = mongoose.model('Product', productSchema);
