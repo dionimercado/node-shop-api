@@ -1,13 +1,17 @@
-const express = require('express');
+const express       = require('express'),
+      auth          = require('../middlewares/auth'),
+      productCtrl   = require('../controllers/product'),
+      userCtrl   = require('../controllers/user'),
+      api           = express.Router();
 
-ProductCtrl   = require('../controllers/product');
-
-const api = express.Router();
-
-api.get('/product', ProductCtrl.getAll);
-api.get('/product/:productId', ProductCtrl.getOne);
-api.post('/product', ProductCtrl.create);
-api.put('/product/:productId', ProductCtrl.update);
-api.delete('/product/:productId', ProductCtrl.remove);
+api.get('/product', productCtrl.getAll);
+api.get('/product/:productId', productCtrl.getOne);
+api.post('/product', productCtrl.create);
+api.put('/product/:productId', productCtrl.update);
+api.delete('/product/:productId', productCtrl.remove);
+api.post('/signup', userCtrl.SignUp);
+api.get('/private', auth, (req, res) => {
+  res.status(200).send({message: 'Tienes acceso a este endpoint'});
+});
 
 module.exports = api;
